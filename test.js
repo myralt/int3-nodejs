@@ -1,4 +1,6 @@
-let http = require("http");
+let http = require('http');
+let url = require('url');
+
 let server = http.createServer(newClientCallback);
 var n = 0;
 
@@ -13,7 +15,7 @@ function newClientCallback(request, response) {
   let date = new Date();
   let week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-  let links = ["/time", "/date", "/header"];
+  let links = ["/time", "/date", "/header", "/multiply"];
   
   if (request.url === "/time") {
     response.writeHead(200, {'content-type': 'text/html'});
@@ -34,6 +36,19 @@ function newClientCallback(request, response) {
     list += "</ul>";
     response.writeHead(200, {'content-type': 'text/html'});
     response.end(list);
+  }
+  else if (url.parse(request.url).pathname === "/multiply"){
+    let val1 = url.parse(request.url, true).query.val1;
+    let val2 = url.parse(request.url, true).query.val2;
+
+    if (val1 && val2){
+      response.writeHead(200, {'content-type': 'text/html'});
+      response.end(`<h1>${val1} x ${val2} = ${val1 * val2}</h1>`);
+    }
+    else {
+      response.writeHead(200, {'content-type': 'text/html'});
+      response.end(`<h1>Air x Air = Lots of Air</h1> <p>Hint: you might want to actually provide numbers ( /multiply?val1=2&val2=2 )</p>`);
+    }
   }
   else {
     let list = "<ul>";
