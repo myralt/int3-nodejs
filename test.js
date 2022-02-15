@@ -15,7 +15,7 @@ function newClientCallback(request, response) {
   let date = new Date();
   let week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-  let links = ["/time", "/date", "/header", "/multiply"];
+  let links = ["/time", "/date", "/header", "/multiply", "/convert"];
   
   if (request.url === "/time") {
     response.writeHead(200, {'content-type': 'text/html'});
@@ -48,6 +48,20 @@ function newClientCallback(request, response) {
     else {
       response.writeHead(200, {'content-type': 'text/html'});
       response.end(`<h1>Air x Air = Lots of Air</h1> <p>Hint: you might want to actually provide numbers ( /multiply?val1=2&val2=2 )</p>`);
+    }
+  }
+  else if (url.parse(request.url).pathname === "/convert") 
+  {
+    let dollars = url.parse(request.url, true).query.usd;
+    let euros = 0.88 * dollars;
+    if (dollars)
+    {
+      response.writeHead(200, {'content-type': 'text/html; charset=utf-8'});
+      response.end(`${dollars} USD = ${euros} EUR.`);
+    }
+    else {
+      response.writeHead(200, {'content-type': 'text/html'});
+      response.end(`<h1>Air is very valuable I know. Not very monetisable though...</h1> <p>Hint: you might want to try ( /convert?usd=1 )</p>`);
     }
   }
   else {
