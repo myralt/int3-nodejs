@@ -1,5 +1,6 @@
 let http = require('http');
 let url = require('url');
+let filestream = require('fs');
 
 let server = http.createServer(newClientCallback);
 var n = 0;
@@ -46,7 +47,7 @@ function newClientCallback(request, response) {
       response.end(`<h1>${val1} x ${val2} = ${val1 * val2}</h1>`);
     }
     else {
-      response.writeHead(200, {'content-type': 'text/html'});
+      response.writeHead(404, {'content-type': 'text/html'});
       response.end(`<h1>Air x Air = Lots of Air</h1> <p>Hint: you might want to actually provide numbers ( /multiply?val1=2&val2=2 )</p>`);
     }
   }
@@ -60,8 +61,41 @@ function newClientCallback(request, response) {
       response.end(`${dollars} USD = ${euros} EUR.`);
     }
     else {
-      response.writeHead(200, {'content-type': 'text/html'});
+      response.writeHead(404, {'content-type': 'text/html'});
       response.end(`<h1>Air is very valuable I know. Not very monetisable though...</h1> <p>Hint: you might want to try ( /convert?usd=1 )</p>`);
+    }
+  }
+  else if (url.parse(request.url).pathname === "/json/getEmployees") 
+  {
+    let employees = {
+      "employees": [
+        {"firstName": "John", "lastName":"Doe"},
+        {"firstName": "Peter", "lastName":"Jones"}
+      ]
+    };
+    response.writeHead(200, {'content-type': 'text/x-json'});  //application/json
+    response.end(JSON.stringify(employees, null, 4));
+  }
+  else if (url.parse(request.url).pathname === "/json/getZipCode")
+  {
+    let city = url.parse(request.url, true).query.city;
+    const zipFile = filestream.readFileSync('code-postaux-belge.json');
+
+    const cities = JSON.parse(zipFile);
+
+    if (city)
+    {
+      cities.forEach((c) => {
+        if (c.city == city){
+          response.writeHead(200, {'content-type': 'text/x-json'});
+          response.end(JSON.stringify(c.zip));
+        }
+      });
+    }
+    else
+    {
+      response.writeHead(404, {'content-type': 'text/x-json'});
+      response.end("Sorry, no zip code corresponds to city you provided (Or you didn't provide any...)");
     }
   }
   else {
