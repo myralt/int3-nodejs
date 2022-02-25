@@ -29,7 +29,7 @@ response = (resp) => {
   });
 }
 
-http.get(request, response);
+//http.get(request, response);
 
 //Test 3: Using https.
 let https = require('https');
@@ -39,5 +39,28 @@ request = {
   "port": 443,
   "path": "/index.html"
 };
+
+//https.get(request, response);
+
+//Test 4: Query an api (https://open.er-api.com/v6/latest/USD).
+request = {
+  "host": "open.er-api.com",
+  "port": 443,
+  "path": "/v6/latest/EUR"
+}
+
+//https.get(request, response);
+
+//Test 5: Return rates as an object.
+response = (resp) => {
+  let rawData = "";
+  resp.on('data', (chunk) => {
+    rawData += chunk;
+  });
+  resp.on('end', (lastChunk) => {
+    let currency = JSON.parse(rawData);
+    console.log(currency.rates);
+  });
+}
 
 https.get(request, response);
