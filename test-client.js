@@ -1,5 +1,6 @@
 //Node application examples that act as a client.
 let http = require('http');
+let url = require('url');
 
 
 //Test 1: request Google's homepage.
@@ -16,7 +17,7 @@ let response = (resp) => {
 }
 
 //Send request and wait:
-http.get(request, response);
+//http.get(request, response);
 
 //Test 2: Receive chunks asynchronously.
 response = (resp) => {
@@ -63,4 +64,48 @@ response = (resp) => {
   });
 }
 
+//https.get(request, response);
+
+//Test 6: Now display the object in a browser window (so not client anymore).
+let value = 100 //USD to convert to EUR
+request = {
+  "host": "open.er-api.com",
+  "port": 443,
+  "path": "/v6/latest/USD"
+}
+
+let usd, euro;
+
+response = (resp) => {
+  let rawData = "";
+  resp.on('data', (chunk) => {
+    rawData += chunk;
+  });
+  resp.on('end', (lastChunk) => {
+    let currency = JSON.parse(rawData);
+    usd = currency.rates["USD"] * value;
+    euro = currency.rates["EUR"] * value;
+    console.log(usd);
+    console.log(euro);
+  });
+}
+
 https.get(request, response);
+//format response now to html
+//send it to localhost port 8080
+//it displays?
+
+//Create a server instance:
+let server = http.createServer(responseBrowser);
+
+//Set it to a port:
+server.listen(8080);
+
+//Quick shortcut and sanity check:
+console.log("Server running at http://127.0.0.1:8080/");
+
+//Define the callback function:
+function responseBrowser(req, res){
+  res.writeHead(200, {'content-type': 'text/html'});
+  res.end(`<h1>Conversion from USD to EUR</h1><p>${usd} dollars valent ${euro}</p>`);
+}
