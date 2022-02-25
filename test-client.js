@@ -1,9 +1,8 @@
-//Node application examples that act as a client.
-let http = require('http');
-let url = require('url');
-
+//Node application examples that act as a client or proxy.
 
 //Test 1: request Google's homepage.
+let http = require('http');
+
 //Prepare request:
 let request = {
   "host": "www.google.com",
@@ -74,7 +73,7 @@ request = {
   "path": "/v6/latest/USD"
 }
 
-let usd, euro;
+let currency, usd, euro;
 
 response = (resp) => {
   let rawData = "";
@@ -82,7 +81,7 @@ response = (resp) => {
     rawData += chunk;
   });
   resp.on('end', (lastChunk) => {
-    let currency = JSON.parse(rawData);
+    currency = JSON.parse(rawData); //we only ask for the information once and don't make unnecessary requests (money).
     usd = currency.rates["USD"] * value;
     euro = currency.rates["EUR"] * value;
     console.log(usd);
@@ -90,7 +89,7 @@ response = (resp) => {
   });
 }
 
-https.get(request, response);
+//https.get(request, response);
 //format response now to html
 //send it to localhost port 8080
 //it displays?
@@ -105,7 +104,57 @@ server.listen(8080);
 console.log("Server running at http://127.0.0.1:8080/");
 
 //Define the callback function:
+// function responseBrowser(req, res){
+//   res.writeHead(200, {'content-type': 'text/html'});
+//   res.end(`<h1>Conversion from USD to EUR</h1><p>${usd} dollars valent ${euro}</p>`);
+// }
+
+//Test 7: Now give the option to choose currency as well as target of conversion.
+let url = require('url');
+
 function responseBrowser(req, res){
-  res.writeHead(200, {'content-type': 'text/html'});
-  res.end(`<h1>Conversion from USD to EUR</h1><p>${usd} dollars valent ${euro}</p>`);
+  if (url.parse(req.url).pathname === "/convert"){
+    let valueToConvert = url.parse(req.url, true).query.symbol;
+    let target = url.parse(req.url, true).query.target;
+    let data, value, converted;
+
+    if (valueToConvert && target){
+      let requestToApi = {
+        "host": "open.er-api.com",
+        "port": 443,
+        "path": `/v6/latest/${valueToConvert}`
+      }
+      let responseFromApi = (resp) => {
+        let rawData = "";
+        resp.on('data', (chunk) => {
+          rawData += chunk;
+        });
+        resp.on('end', (lastChunk) => {
+          data = JSON.parse(rawData);
+          value = data.rates[valueToConvert];
+          converted = data.rates[target];
+        });
+      }
+
+      https.get(requestToApi, responseFromApi);
+
+      res.writeHead(200, {'content-type': 'text/x-json'});
+      res.end(JSON.stringify([value, converted], null, 4));
+    }
+    else {
+      res.writeHead(404, {'content-type': 'text/html'});
+      res.end("<h1>Air = Air I guess</h1>");
+    }
+  } else {
+    res.writeHead(200, {'content-type': 'text/html'});
+    res.end(`<h1>Conversion for whatever you want!</h1>`);
+  }
 }
+
+//parse the url for the path containing query parameters
+//retrieve the euro value for multiplication
+//retrieve the target currency
+//read the file
+//extract euro and target props from rates prop in currency object
+//format as html
+//write head and send the html
