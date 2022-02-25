@@ -19,3 +19,25 @@ let response = (resp) => {
 http.get(request, response);
 
 //Test 2: Receive chunks asynchronously.
+response = (resp) => {
+  let rawData = "";
+  resp.on('data', (chunk) => {
+    rawData += chunk;
+  });
+  resp.on('end', (lastChunk) => {
+    console.log(rawData);
+  });
+}
+
+http.get(request, response);
+
+//Test 3: Using https.
+let https = require('https');
+
+request = {
+  "host": "www.interface3.be",
+  "port": 443,
+  "path": "/index.html"
+};
+
+https.get(request, response);
